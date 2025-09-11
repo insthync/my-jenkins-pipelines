@@ -3,7 +3,7 @@ pipeline {
     parameters {
         string(name: 'UNITY_PATH', defaultValue: 'C:\\Unity\\2022.3.55f1\\Editor\\Unity.exe', description: 'Full path to Unity executable')
         string(name: 'PROJECT_PATH', defaultValue: 'C:\\Projects\\Game', description: 'Full path to Unity project')
-        choice(name: 'BUILD_TARGET', choices: ['LinuxServer', 'WindowsServer', 'Android', 'iOS'], description: 'Target build platform')
+        string(name: 'BUILD_TARGET', defaultValue: 'LinuxServer', description: 'Target build platform (LinuxServer, WindowsServer, Android, iOS)')
         string(name: 'OUTPUT_PATH', defaultValue: 'C:\\Projects\\Build', description: 'Optional output path override')
         string(name: 'EXE_NAME', defaultValue: 'Build.x86_64', description: 'Optional executable name override (with extension)')
         string(name: 'BUNDLE_VERSION', defaultValue: '', description: 'Optional bundle version override')
