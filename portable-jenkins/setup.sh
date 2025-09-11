@@ -7,10 +7,13 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Set JENKINS_HOME to a subfolder "jenkins_home"
-JENKINS_HOME="$SCRIPT_DIR/jenkins_home"
+export JENKINS_HOME="$SCRIPT_DIR/jenkins_home"
 
 # Create jenkins_home if it doesn't exist
 mkdir -p "$JENKINS_HOME"
+
+# Ask user for Jenkins port
+read -p "Enter Jenkins port: " JENKINS_PORT
 
 # Ask user for admin username/password
 read -p "Enter Jenkins admin username: " ADMIN_USER
@@ -48,9 +51,6 @@ mkdir -p "$JENKINS_HOME/init.groovy.d"
 
 # Copy init script into init.groovy.d
 cp "$INIT_SCRIPT" "$JENKINS_HOME/init.groovy.d/"
-
-# Jenkins port
-JENKINS_PORT=8080
 
 # Launch Jenkins in background with logging
 java -Djenkins.install.runSetupWizard=false -Djenkins.home="$JENKINS_HOME" -jar "$SCRIPT_DIR/jenkins.war" --httpPort=$JENKINS_PORT > "$SCRIPT_DIR/jenkins-setup.log" 2>&1 &

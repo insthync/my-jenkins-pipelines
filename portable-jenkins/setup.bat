@@ -14,6 +14,9 @@ IF NOT EXIST "%JENKINS_HOME%" (
     mkdir "%JENKINS_HOME%"
 )
 
+REM Ask user for Jenkins port
+SET /p JENKINS_PORT=Enter Jenkins port: 
+
 REM Ask user for admin username/password
 SET /p ADMIN_USER=Enter Jenkins admin username: 
 SET /p ADMIN_PASS=Enter Jenkins admin password: 
@@ -48,7 +51,6 @@ IF NOT EXIST "%JENKINS_HOME%\init.groovy.d" mkdir "%JENKINS_HOME%\init.groovy.d"
 REM Copy init scripts if needed
 copy "%SCRIPT_DIR%\init_admin.groovy" "%JENKINS_HOME%\init.groovy.d"
 
-SET JENKINS_PORT=8080
 REM Launch Jenkins
 start "" /B java -Djenkins.install.runSetupWizard=false -jar "%SCRIPT_DIR%jenkins.war" --httpPort=%JENKINS_PORT% >> "%SCRIPT_DIR%jenkins-setup.log" 2>&1
 

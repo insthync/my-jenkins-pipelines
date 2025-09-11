@@ -12,6 +12,9 @@ export JENKINS_HOME="$SCRIPT_DIR/jenkins_home"
 # Create jenkins_home if it doesn't exist
 mkdir -p "$JENKINS_HOME"
 
+# Ask user for Jenkins port
+read -p "Enter Jenkins port: " JENKINS_PORT
+
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../" && pwd)"
 # Copy pipeline Groovy files from project pipelines folder to jenkins_home/pipelines
 mkdir -p "$JENKINS_HOME/pipelines"
@@ -25,7 +28,6 @@ cp -f "$PROJECT_DIR/pipeline-config/"*.cfg "$JENKINS_HOME/pipeline-config/"
 mkdir -p "$JENKINS_HOME/init.groovy.d"
 cp -f "$PROJECT_DIR/init.groovy.d/"*.groovy "$JENKINS_HOME/init.groovy.d/"
 
-JENKINS_PORT=8080
 # Launch Jenkins
 java -Djenkins.install.runSetupWizard=false -Djenkins.home="$JENKINS_HOME" -jar "$SCRIPT_DIR/jenkins.war" --httpPort=$JENKINS_PORT > "$SCRIPT_DIR/jenkins.log" 2>&1 &
 

@@ -14,6 +14,9 @@ IF NOT EXIST "%JENKINS_HOME%" (
     mkdir "%JENKINS_HOME%"
 )
 
+REM Ask user for Jenkins port
+SET /p JENKINS_PORT=Enter Jenkins port: 
+
 SET PROJECT_DIR=%SCRIPT_DIR%..
 REM Copy pipeline Groovy files from project pipelines folder to jenkins_home/pipelines
 IF NOT EXIST "%JENKINS_HOME%\pipelines" (
@@ -39,7 +42,6 @@ IF NOT EXIST "%JENKINS_HOME%\init.groovy.d" (
 REM Copy all .groovy files
 xcopy "%PROJECT_DIR%\init.groovy.d\*.groovy" "%JENKINS_HOME%\init.groovy.d\" /Y /S
 
-SET JENKINS_PORT=8080
 REM Launch Jenkins
 start "" /B java -Djenkins.install.runSetupWizard=false -jar "%SCRIPT_DIR%jenkins.war" --httpPort=%JENKINS_PORT% >> "%SCRIPT_DIR%jenkins.log" 2>&1
 
