@@ -53,7 +53,7 @@ mkdir -p "$JENKINS_HOME/init.groovy.d"
 cp "$INIT_SCRIPT" "$JENKINS_HOME/init.groovy.d/"
 
 # Launch Jenkins in background with logging
-java -Djenkins.install.runSetupWizard=false -Djenkins.home="$JENKINS_HOME" -jar "$SCRIPT_DIR/jenkins.war" --httpPort=$JENKINS_PORT > "$SCRIPT_DIR/jenkins-setup.log" 2>&1 &
+java --enable-future-java -Djenkins.install.runSetupWizard=false -Djenkins.home="$JENKINS_HOME" -jar "$SCRIPT_DIR/jenkins.war" --httpPort=$JENKINS_PORT > "$SCRIPT_DIR/jenkins-setup.log" 2>&1 &
 
 echo "Wait a few seconds for Jenkins to start..."
 sleep 30
@@ -71,7 +71,7 @@ else
 fi
 
 # Install plugins automatically
-java -jar "$CLI_JAR" -s "$JENKINS_URL" -auth "$ADMIN_USER:$ADMIN_PASS" install-plugin workflow-aggregator -deploy > "$SCRIPT_DIR/jenkins-plugins-setup.log" 2>&1
+java --enable-future-java -jar "$CLI_JAR" -s "$JENKINS_URL" -auth "$ADMIN_USER:$ADMIN_PASS" install-plugin workflow-aggregator -deploy > "$SCRIPT_DIR/jenkins-plugins-setup.log" 2>&1
 
 echo "Setup completed!!"
 echo "Open Jenkins at $JENKINS_URL"
