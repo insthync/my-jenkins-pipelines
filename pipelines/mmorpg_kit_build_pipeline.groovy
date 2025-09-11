@@ -5,7 +5,7 @@ pipeline {
         string(name: 'PROJECT_PATH', defaultValue: 'C:\\Projects\\Game', description: 'Full path to Unity project')
         choice(name: 'BUILD_TARGET', choices: ['LinuxServer', 'WindowsServer', 'Android', 'iOS'], description: 'Target build platform')
         string(name: 'OUTPUT_PATH', defaultValue: 'C:\\Projects\\Build', description: 'Optional output path override')
-        string(name: 'EXE_NAME'), defaultValue: 'Build.x86_64', description: 'Optional executable name override (with extension)')
+        string(name: 'EXE_NAME', defaultValue: 'Build.x86_64', description: 'Optional executable name override (with extension)')
         string(name: 'BUNDLE_VERSION', defaultValue: '', description: 'Optional bundle version override')
         booleanParam(name: 'CLEAN_CONTENT', defaultValue: false, description: 'Clean Addressables build output before build')
         booleanParam(name: 'PURGE_CACHE', defaultValue: false, description: 'Purge global SBP build cache before build')
@@ -40,9 +40,9 @@ pipeline {
             steps {
                 script {
                     dir(params.PROJECT_PATH) {
-                        if (params.GIT_USER?.trim()) sh 'git config --global user.name "${params.GIT_USER}"'
-                        if (params.GIT_MAIL?.trim()) sh 'git config --global user.email "${params.GIT_MAIL}"'
-                        if (params.GIT_PASS?.trim()) sh 'git config --global user.password "${params.GIT_PASS}"'
+                        if (params.GIT_USER?.trim()) sh "git config --global user.name \"${params.GIT_USER}\""
+                        if (params.GIT_MAIL?.trim()) sh "git config --global user.email \"${params.GIT_MAIL}\""
+                        if (params.GIT_PASS?.trim()) sh "git config --global user.password \"${params.GIT_PASS}\""
                         sh """
                             git fetch --all
                             git checkout ${params.GIT_BRANCH}
@@ -122,7 +122,7 @@ pipeline {
             }
             steps {
                 script {
-                    if (params.DOCKER_USER?.trim() && if (params.DOCKER_PASS?.trim())) sh "echo ""${params.DOCKER_PASS}"" | docker login -u ""${params.DOCKER_USER}"" --password-stdin"
+                    if (params.DOCKER_USER?.trim() && params.DOCKER_PASS?.trim()) sh "echo \"${params.DOCKER_PASS}\" | docker login -u \"${params.DOCKER_USER}\" --password-stdin"
                     sh """
                         
                         docker tag ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
