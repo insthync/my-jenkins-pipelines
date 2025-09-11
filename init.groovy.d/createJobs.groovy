@@ -32,17 +32,42 @@ configDir.listFiles().findAll { it.name.endsWith(".cfg") }.each { cfgFile ->
     }
 
     def jobName = cfgFile.name.replace(".cfg", "")    
-    println "Creating job ${jobName} using pipeline ${pipelineScriptName}"
+    println "Processing job ${jobName} using pipeline ${pipelineScriptName}"
     def existingJob = jenkins.getItem(jobName)
-    /*
+    
     if (existingJob) {
-        println "Job ${jobName} already exists, skipping..."
+        println "Job ${jobName} already exists, updating pipeline script and parameters..."
+        // Update the pipeline script
+        def pipelineFile = new File(jenkins.rootDir, "pipelines/${pipelineScriptName}")
+        if (pipelineFile.exists()) {
+            def scriptText = pipelineFile.text
+            // Replace default values in the pipeline script with values from config file
+            configMap.each { k, v ->
+                // Escape backslashes in the value for proper Groovy string replacement
+                def escapedValue = v.replace('\\', '\\\\')
+                
+                // Replace defaultValue: 'old_value' with defaultValue: 'new_value'
+                def pattern = /defaultValue:\s*'[^']*'/
+                def replacement = "defaultValue: '${escapedValue}'"
+                scriptText = scriptText.replaceAll(/(name:\s*'${k}',\s*)${pattern}/, '$1' + replacement)
+                
+                // Also handle boolean values
+                if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) {
+                    def boolPattern = /defaultValue:\s*(true|false)/
+                    def boolReplacement = "defaultValue: ${Boolean.parseBoolean(v)}"
+                    scriptText = scriptText.replaceAll(/(name:\s*'${k}',\s*)${boolPattern}/, '$1' + boolReplacement)
+                }
+            }
+            existingJob.definition = new CpsFlowDefinition(scriptText, true)
+            
+            // No need to set job parameters since we're dynamically generating the pipeline script
+            
+            existingJob.save()
+            println "Pipeline script and parameters updated for job ${jobName}"
+        } else {
+            println "Pipeline script not found: ${pipelineFile.absolutePath}, skipping update..."
+        }
         return
-    }
-    */
-    if (existingJob) {
-        println "Job ${jobName} already exists, deleting..."
-        existingJob.delete()
     }
 
     def pipelineFile = new File(jenkins.rootDir, "pipelines/${pipelineScriptName}")
@@ -52,28 +77,29 @@ configDir.listFiles().findAll { it.name.endsWith(".cfg") }.each { cfgFile ->
     }
 
     def scriptText = pipelineFile.text
-    // Replace placeholders inside the script if you still want defaults updated
+    // Replace default values in the pipeline script with values from config file
     configMap.each { k, v ->
-        scriptText = scriptText.replace("\${${k}}", v)
+        // Escape backslashes in the value for proper Groovy string replacement
+        def escapedValue = v.replace('\\', '\\\\')
+        
+        // Replace defaultValue: 'old_value' with defaultValue: 'new_value'
+        def pattern = /defaultValue:\s*'[^']*'/
+        def replacement = "defaultValue: '${escapedValue}'"
+        scriptText = scriptText.replaceAll(/(name:\s*'${k}',\s*)${pattern}/, '$1' + replacement)
+        
+        // Also handle boolean values
+        if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) {
+            def boolPattern = /defaultValue:\s*(true|false)/
+            def boolReplacement = "defaultValue: ${Boolean.parseBoolean(v)}"
+            scriptText = scriptText.replaceAll(/(name:\s*'${k}',\s*)${boolPattern}/, '$1' + boolReplacement)
+        }
     }
 
     // Create the pipeline job
     def job = jenkins.createProject(org.jenkinsci.plugins.workflow.job.WorkflowJob, jobName)
     job.definition = new CpsFlowDefinition(scriptText, true)
 
-    // Set job parameters from config
-    def paramsList = []
-    configMap.each { k, v ->
-        def description = "Configured from ${cfgFile.name}" // default description
-        if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) {
-            paramsList << new BooleanParameterDefinition(k, Boolean.parseBoolean(v), description)
-        } else {
-            paramsList << new StringParameterDefinition(k, v, description)
-        }
-    }
-    if (paramsList) {
-        job.addProperty(new ParametersDefinitionProperty(paramsList))
-    }
+    // No need to set job parameters since we're dynamically generating the pipeline script
 
     job.save()
     println "Job ${jobName} created with parameters."
