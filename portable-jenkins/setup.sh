@@ -71,7 +71,7 @@ else
 fi
 
 # Install plugins automatically
-java -jar "$CLI_JAR" --enable-future-java -s "$JENKINS_URL" -auth "$ADMIN_USER:$ADMIN_PASS" install-plugin workflow-aggregator -deploy > "$SCRIPT_DIR/jenkins-plugins-setup.log" 2>&1
+java -jar "$CLI_JAR" -s "$JENKINS_URL" -auth "$ADMIN_USER:$ADMIN_PASS" install-plugin workflow-aggregator -deploy > "$SCRIPT_DIR/jenkins-plugins-setup.log" 2>&1
 
 echo "Setup completed!!"
 echo "Open Jenkins at $JENKINS_URL"

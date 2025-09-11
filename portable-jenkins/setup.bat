@@ -70,7 +70,7 @@ IF EXIST "%CLI_JAR%" (
 )
 
 REM Install plugins automatically
-start "" /B java -jar "%SCRIPT_DIR%jenkins-cli.jar" --enable-future-java -s %JENKINS_URL% -auth %ADMIN_USER%:%ADMIN_PASS% install-plugin workflow-aggregator -deploy >> "%SCRIPT_DIR%jenkins-plugins-setup.log" 2>&1
+start "" /B java -jar "%SCRIPT_DIR%jenkins-cli.jar" -s %JENKINS_URL% -auth %ADMIN_USER%:%ADMIN_PASS% install-plugin workflow-aggregator -deploy >> "%SCRIPT_DIR%jenkins-plugins-setup.log" 2>&1
 
 echo "Setup completed!!"
 start "" "%JENKINS_URL%"
