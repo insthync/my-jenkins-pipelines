@@ -34,7 +34,7 @@ pipeline {
         string(name: 'GIT_USER', defaultValue: 'username', description: 'Git username')
         string(name: 'GIT_MAIL', defaultValue: 'name@domain.com', description: 'Git email')
         string(name: 'GIT_PASS', defaultValue: 'password', description: 'Git password')
-        booleanParam(name: 'RESTORE_STASH', defaultValue: true, description: 'Restore stashed changes after build (for development builds)')
+        booleanParam(name: 'GIT_RESTORE_STASH', defaultValue: true, description: 'Restore stashed changes after build (for development builds)')
     }
 
     stages {
@@ -188,7 +188,7 @@ pipeline {
         always {
             script {
                 // Optionally restore stashed changes if requested
-                if (params.RESTORE_STASH) {
+                if (params.GIT_PULL && params.GIT_RESTORE_STASH) {
                     dir(params.PROJECT_PATH) {
                         if (isUnix()) {
                             sh """
