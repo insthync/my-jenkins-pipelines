@@ -29,7 +29,7 @@ mkdir -p "$JENKINS_HOME/init.groovy.d"
 cp -f "$PROJECT_DIR/init.groovy.d/"*.groovy "$JENKINS_HOME/init.groovy.d/"
 
 # Launch Jenkins
-java --enable-future-java -Djenkins.install.runSetupWizard=false -Djenkins.home="$JENKINS_HOME" -jar "$SCRIPT_DIR/jenkins.war" --httpPort=$JENKINS_PORT > "$SCRIPT_DIR/jenkins.log" 2>&1 &
+java -Djenkins.install.runSetupWizard=false -Djenkins.home="$JENKINS_HOME" -jar "$SCRIPT_DIR/jenkins.war" --enable-future-java --httpPort=$JENKINS_PORT > "$SCRIPT_DIR/jenkins.log" 2>&1 &
 
 JENKINS_URL="http://localhost:$JENKINS_PORT"
 echo "Open Jenkins at $JENKINS_URL"

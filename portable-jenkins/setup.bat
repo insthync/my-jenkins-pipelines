@@ -52,7 +52,7 @@ REM Copy init scripts if needed
 copy "%SCRIPT_DIR%\init_admin.groovy" "%JENKINS_HOME%\init.groovy.d"
 
 REM Launch Jenkins
-start "" /B java --enable-future-java -Djenkins.install.runSetupWizard=false -jar "%SCRIPT_DIR%jenkins.war" --httpPort=%JENKINS_PORT% >> "%SCRIPT_DIR%jenkins-setup.log" 2>&1
+start "" /B java -Djenkins.install.runSetupWizard=false -jar "%SCRIPT_DIR%jenkins.war" --enable-future-java --httpPort=%JENKINS_PORT% >> "%SCRIPT_DIR%jenkins-setup.log" 2>&1
 
 REM Wait a few seconds for Jenkins to start
 echo "Wait a few seconds for Jenkins to start"
@@ -70,7 +70,7 @@ IF EXIST "%CLI_JAR%" (
 )
 
 REM Install plugins automatically
-start "" /B java --enable-future-java -jar "%SCRIPT_DIR%jenkins-cli.jar" -s %JENKINS_URL% -auth %ADMIN_USER%:%ADMIN_PASS% install-plugin workflow-aggregator -deploy >> "%SCRIPT_DIR%jenkins-plugins-setup.log" 2>&1
+start "" /B java -jar "%SCRIPT_DIR%jenkins-cli.jar" --enable-future-java -s %JENKINS_URL% -auth %ADMIN_USER%:%ADMIN_PASS% install-plugin workflow-aggregator -deploy >> "%SCRIPT_DIR%jenkins-plugins-setup.log" 2>&1
 
 echo "Setup completed!!"
 start "" "%JENKINS_URL%"

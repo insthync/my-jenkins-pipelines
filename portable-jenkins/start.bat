@@ -43,7 +43,7 @@ REM Copy all .groovy files
 xcopy "%PROJECT_DIR%\init.groovy.d\*.groovy" "%JENKINS_HOME%\init.groovy.d\" /Y /S
 
 REM Launch Jenkins
-start "" /B java --enable-future-java -Djenkins.install.runSetupWizard=false -jar "%SCRIPT_DIR%jenkins.war" --httpPort=%JENKINS_PORT% >> "%SCRIPT_DIR%jenkins.log" 2>&1
+start "" /B java -Djenkins.install.runSetupWizard=false -jar "%SCRIPT_DIR%jenkins.war" --enable-future-java --httpPort=%JENKINS_PORT% >> "%SCRIPT_DIR%jenkins.log" 2>&1
 
 SET JENKINS_URL="http://localhost:%JENKINS_PORT%"
 start "" "%JENKINS_URL%"
