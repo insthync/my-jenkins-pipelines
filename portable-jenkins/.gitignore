@@ -1,0 +1,5 @@
+/jenkins_home
+jenkins.war
+jenkins-cli.jar
+init_admin.groovy
+*.log
