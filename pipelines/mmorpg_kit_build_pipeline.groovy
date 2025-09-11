@@ -29,25 +29,57 @@ pipeline {
         string(name: 'DOCKER_PASS', defaultValue: 'password', description: 'Docker password')
 
         // Git parameters
+        booleanParam(name: 'GIT_PULL', defaultValue: true, description: 'Pull latest changes from remote repository')
         string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git branch to checkout')
         string(name: 'GIT_USER', defaultValue: 'username', description: 'Git username')
         string(name: 'GIT_MAIL', defaultValue: 'name@domain.com', description: 'Git email')
         string(name: 'GIT_PASS', defaultValue: 'password', description: 'Git password')
+        booleanParam(name: 'RESTORE_STASH', defaultValue: true, description: 'Restore stashed changes after build (for development builds)')
     }
 
     stages {
         stage('Git Checkout') {
             steps {
                 script {
-                    dir(params.PROJECT_PATH) {
-                        if (params.GIT_USER?.trim()) sh "git config --global user.name \"${params.GIT_USER}\""
-                        if (params.GIT_MAIL?.trim()) sh "git config --global user.email \"${params.GIT_MAIL}\""
-                        if (params.GIT_PASS?.trim()) sh "git config --global user.password \"${params.GIT_PASS}\""
-                        sh """
-                            git fetch --all
-                            git checkout ${params.GIT_BRANCH}
-                            git pull origin ${params.GIT_BRANCH}
-                        """
+                    if (params.GIT_PULL) {
+                        dir(params.PROJECT_PATH) {
+                            if (params.GIT_USER?.trim()) {
+                                if (isUnix()) {
+                                    sh "git config --global user.name \"${params.GIT_USER}\""
+                                } else {
+                                    bat "git config --global user.name \"${params.GIT_USER}\""
+                                }
+                            }
+                            if (params.GIT_MAIL?.trim()) {
+                                if (isUnix()) {
+                                    sh "git config --global user.email \"${params.GIT_MAIL}\""
+                                } else {
+                                    bat "git config --global user.email \"${params.GIT_MAIL}\""
+                                }
+                            }
+                            if (params.GIT_PASS?.trim()) {
+                                if (isUnix()) {
+                                    sh "git config --global user.password \"${params.GIT_PASS}\""
+                                } else {
+                                    bat "git config --global user.password \"${params.GIT_PASS}\""
+                                }
+                            }
+                             if (isUnix()) {
+                                 sh """
+                                     git fetch --all
+                                     git stash push -m "Jenkins build stash - \$(date)"
+                                     git checkout ${params.GIT_BRANCH}
+                                     git pull origin ${params.GIT_BRANCH}
+                                 """
+                             } else {
+                                 bat """
+                                     git fetch --all
+                                     git stash push -m "Jenkins build stash - %date%"
+                                     git checkout ${params.GIT_BRANCH}
+                                     git pull origin ${params.GIT_BRANCH}
+                                 """
+                             }
+                        }
                     }
                 }
             }
@@ -108,10 +140,15 @@ pipeline {
             }
             steps {
                 script {
-                    sh """
-                        docker build -t ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} \
-                            ${params.OUTPUT_PATH}
-                    """
+                    if (isUnix()) {
+                        sh """
+                            docker build -t ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.OUTPUT_PATH}
+                        """
+                    } else {
+                        bat """
+                            docker build -t ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.OUTPUT_PATH}
+                        """
+                    }
                 }
             }
         }
@@ -122,13 +159,26 @@ pipeline {
             }
             steps {
                 script {
-                    if (params.DOCKER_USER?.trim() && params.DOCKER_PASS?.trim()) sh "echo \"${params.DOCKER_PASS}\" | docker login -u \"${params.DOCKER_USER}\" --password-stdin"
-                    sh """
-                        
-                        docker tag ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
-                        docker push ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
-                        docker logout
-                    """
+                    if (params.DOCKER_USER?.trim() && params.DOCKER_PASS?.trim()) {
+                        if (isUnix()) {
+                            sh "docker login -u \"${params.DOCKER_USER}\" -p \"${params.DOCKER_PASS}\""
+                        } else {
+                            bat "docker login -u \"${params.DOCKER_USER}\" -p \"${params.DOCKER_PASS}\""
+                        }
+                    }
+                    if (isUnix()) {
+                        sh """
+                            docker tag ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
+                            docker push ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
+                            docker logout
+                        """
+                    } else {
+                        bat """
+                            docker tag ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
+                            docker push ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
+                            docker logout
+                        """
+                    }
                 }
             }
         }
@@ -136,6 +186,33 @@ pipeline {
 
     post {
         always {
+            script {
+                // Optionally restore stashed changes if requested
+                if (params.RESTORE_STASH) {
+                    dir(params.PROJECT_PATH) {
+                        if (isUnix()) {
+                            sh """
+                                if git stash list | grep -q "Jenkins build stash"; then
+                                    git stash pop
+                                    echo "Restored stashed changes"
+                                else
+                                    echo "No Jenkins build stash found"
+                                fi
+                            """
+                        } else {
+                            bat """
+                                for /f "tokens=*" %%i in ('git stash list ^| findstr "Jenkins build stash"') do (
+                                    git stash pop
+                                    echo Restored stashed changes
+                                    goto :found
+                                )
+                                echo No Jenkins build stash found
+                                :found
+                            """
+                        }
+                    }
+                }
+            }
             echo "Pipeline finished."
         }
     }
