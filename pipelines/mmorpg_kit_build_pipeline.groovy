@@ -155,7 +155,10 @@ pipeline {
 
         stage('Docker Push') {
             when {
-                expression { params.BUILD_TARGET == 'LinuxServer' || params.BUILD_TARGET == 'WindowsServer' }
+                allOf {
+                    expression { params.GENERATE_MAP_SERVER_DOCKERFILE }
+                    expression { params.BUILD_TARGET == 'LinuxServer' || params.BUILD_TARGET == 'WindowsServer' }
+                }
             }
             steps {
                 script {
