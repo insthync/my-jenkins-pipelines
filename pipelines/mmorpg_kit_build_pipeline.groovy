@@ -25,9 +25,34 @@ pipeline {
         string(name: 'MAP_SERVER_PORT_IN_DOCKERFILE', defaultValue: '6000', description: 'Map-server port in Dockerfile')
         string(name: 'MAP_SERVER_DOCKER_IMAGE', defaultValue: 'unity-server', description: 'Docker image name (without registry)')
         string(name: 'MAP_SERVER_DOCKER_TAG', defaultValue: 'latest', description: 'Docker image tag')
+        string(name: 'DOCKER_USER', defaultValue: 'username', description: 'Docker username')
+        string(name: 'DOCKER_PASS', defaultValue: 'password', description: 'Docker password')
+
+        // Git parameters
+        string(name: 'GIT_BRANCH', defaultValue: 'main', description: 'Git branch to checkout')
+        string(name: 'GIT_USER', defaultValue: 'username', description: 'Git username')
+        string(name: 'GIT_MAIL', defaultValue: 'name@domain.com', description: 'Git email')
+        string(name: 'GIT_PASS', defaultValue: 'password', description: 'Git password')
     }
 
     stages {
+        stage('Git Checkout') {
+            steps {
+                script {
+                    dir(params.PROJECT_PATH) {
+                        if (params.GIT_USER?.trim()) sh 'git config --global user.name "${params.GIT_USER}"'
+                        if (params.GIT_MAIL?.trim()) sh 'git config --global user.email "${params.GIT_MAIL}"'
+                        if (params.GIT_PASS?.trim()) sh 'git config --global user.password "${params.GIT_PASS}"'
+                        sh """
+                            git fetch --all
+                            git checkout ${params.GIT_BRANCH}
+                            git pull origin ${params.GIT_BRANCH}
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Build Unity') {
             steps {
                 script {
@@ -96,11 +121,12 @@ pipeline {
                 expression { params.BUILD_TARGET == 'LinuxServer' || params.BUILD_TARGET == 'WindowsServer' }
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                script {
+                    if (params.DOCKER_USER?.trim() && if (params.DOCKER_PASS?.trim())) sh "echo ""${params.DOCKER_PASS}"" | docker login -u ""${params.DOCKER_USER}"" --password-stdin"
                     sh """
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker tag ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} $DOCKER_USER/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
-                        docker push $DOCKER_USER/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
+                        
+                        docker tag ${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG} ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
+                        docker push ${params.DOCKER_USER}/${params.MAP_SERVER_DOCKER_IMAGE}:${params.MAP_SERVER_DOCKER_TAG}
                         docker logout
                     """
                 }
