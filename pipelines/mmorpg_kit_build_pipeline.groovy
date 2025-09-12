@@ -35,7 +35,6 @@ pipeline {
         string(name: 'GIT_USER', defaultValue: 'username', description: 'Git username')
         string(name: 'GIT_MAIL', defaultValue: 'name@domain.com', description: 'Git email')
         string(name: 'GIT_PASS', defaultValue: 'password', description: 'Git password')
-        booleanParam(name: 'GIT_RESTORE_STASH', defaultValue: true, description: 'Restore stashed changes after build (for development builds)')
     }
 
     stages {
@@ -68,14 +67,16 @@ pipeline {
                              if (isUnix()) {
                                  sh """
                                      git fetch --all
-                                     git stash push -m "Jenkins build stash - \$(date)"
+                                     git reset --hard HEAD
+                                     git clean -fd
                                      git checkout ${params.GIT_BRANCH}
                                      git pull origin ${params.GIT_BRANCH}
                                  """
                              } else {
                                  bat """
                                      git fetch --all
-                                     git stash push -m "Jenkins build stash - %date%"
+                                     git reset --hard HEAD
+                                     git clean -fd
                                      git checkout ${params.GIT_BRANCH}
                                      git pull origin ${params.GIT_BRANCH}
                                  """
@@ -231,33 +232,6 @@ pipeline {
 
     post {
         always {
-            script {
-                // Optionally restore stashed changes if requested
-                if (params.GIT_PULL && params.GIT_RESTORE_STASH) {
-                    dir(params.PROJECT_PATH) {
-                        if (isUnix()) {
-                            sh """
-                                if git stash list | grep -q "Jenkins build stash"; then
-                                    git stash pop
-                                    echo "Restored stashed changes"
-                                else
-                                    echo "No Jenkins build stash found"
-                                fi
-                            """
-                        } else {
-                            bat """
-                                for /f "tokens=*" %%i in ('git stash list ^| findstr "Jenkins build stash"') do (
-                                    git stash pop
-                                    echo Restored stashed changes
-                                    goto :found
-                                )
-                                echo No Jenkins build stash found
-                                :found
-                            """
-                        }
-                    }
-                }
-            }
             echo "Pipeline finished."
         }
     }
