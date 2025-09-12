@@ -9,6 +9,7 @@ pipeline {
         string(name: 'BUNDLE_VERSION', defaultValue: '', description: 'Optional bundle version override')
         booleanParam(name: 'CLEAN_CONTENT', defaultValue: false, description: 'Clean Addressables build output before build')
         booleanParam(name: 'PURGE_CACHE', defaultValue: false, description: 'Purge global SBP build cache before build')
+        booleanParam(name: 'PURGE_OUTPUT', defaultValue: true, description: 'Remove all files in OUTPUT_PATH before build')
         
         // Android keystore settings
         booleanParam(name: 'BUILD_APP_BUNDLE', defaultValue: false, description: 'Android: build as app bundle')
@@ -80,6 +81,47 @@ pipeline {
                                  """
                              }
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Purge Output Directory') {
+            when {
+                expression { params.PURGE_OUTPUT }
+            }
+            steps {
+                script {
+                    if (params.OUTPUT_PATH?.trim()) {
+                        echo "Purging output directory: ${params.OUTPUT_PATH}"
+                        if (isUnix()) {
+                            sh """
+                                if [ -d "${params.OUTPUT_PATH}" ]; then
+                                    echo "Removing all files from ${params.OUTPUT_PATH}"
+                                    rm -rf "${params.OUTPUT_PATH}"/*
+                                    echo "Output directory purged successfully"
+                                else
+                                    echo "Output directory does not exist: ${params.OUTPUT_PATH}"
+                                    mkdir -p "${params.OUTPUT_PATH}"
+                                    echo "Created output directory: ${params.OUTPUT_PATH}"
+                                fi
+                            """
+                        } else {
+                            bat """
+                                if exist "${params.OUTPUT_PATH}" (
+                                    echo Removing all files from ${params.OUTPUT_PATH}
+                                    del /q /s "${params.OUTPUT_PATH}\\*" 2>nul
+                                    for /d %%i in ("${params.OUTPUT_PATH}\\*") do rmdir /s /q "%%i" 2>nul
+                                    echo Output directory purged successfully
+                                ) else (
+                                    echo Output directory does not exist: ${params.OUTPUT_PATH}
+                                    mkdir "${params.OUTPUT_PATH}"
+                                    echo Created output directory: ${params.OUTPUT_PATH}
+                                )
+                            """
+                        }
+                    } else {
+                        echo "No OUTPUT_PATH specified, skipping purge"
                     }
                 }
             }
