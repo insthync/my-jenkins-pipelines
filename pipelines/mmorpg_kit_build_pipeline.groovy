@@ -10,6 +10,9 @@ pipeline {
         booleanParam(name: 'CLEAN_CONTENT', defaultValue: false, description: 'Clean Addressables build output before build')
         booleanParam(name: 'PURGE_CACHE', defaultValue: false, description: 'Purge global SBP build cache before build')
         booleanParam(name: 'PURGE_OUTPUT', defaultValue: true, description: 'Remove all files in OUTPUT_PATH before build')
+
+        // Addressables settings
+        string(name: 'ADDRESSABLE_PROFILE_NAME', defaultValue: 'Default', description: 'Addressables profile name')
         
         // Android keystore settings
         booleanParam(name: 'BUILD_APP_BUNDLE', defaultValue: false, description: 'Android: build as app bundle')
@@ -138,6 +141,7 @@ pipeline {
                     if (params.BUNDLE_VERSION?.trim()) unityCmd += " -bundleversion \"${params.BUNDLE_VERSION}\""
                     if (params.CLEAN_CONTENT) unityCmd += " -cleanContent true"
                     if (params.PURGE_CACHE) unityCmd += " -purgeCache true"
+                    if (params.ADDRESSABLE_PROFILE_NAME?.trim()) unityCmd += " -addressableProfileName \"${params.ADDRESSABLE_PROFILE_NAME}\""
 
                     switch(params.BUILD_TARGET) {
                         case 'LinuxServer':
