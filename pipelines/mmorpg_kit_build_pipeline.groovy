@@ -7,6 +7,7 @@ pipeline {
         string(name: 'OUTPUT_PATH', defaultValue: 'C:\\Projects\\Build', description: 'Optional output path override')
         string(name: 'EXE_NAME', defaultValue: 'Build.x86_64', description: 'Optional executable name override (with extension)')
         string(name: 'BUNDLE_VERSION', defaultValue: '', description: 'Optional bundle version override')
+        booleanParam(name: 'DEVELOPMENT_MODE', defaultValue: false, description: 'Will build in development mode?')
         booleanParam(name: 'CLEAN_CONTENT', defaultValue: false, description: 'Clean Addressables build output before build')
         booleanParam(name: 'PURGE_CACHE', defaultValue: false, description: 'Purge global SBP build cache before build')
         booleanParam(name: 'PURGE_OUTPUT', defaultValue: true, description: 'Remove all files in OUTPUT_PATH before build')
@@ -139,6 +140,7 @@ pipeline {
                     if (params.OUTPUT_PATH?.trim()) unityCmd += " -outputPath \"${params.OUTPUT_PATH}\""
                     if (params.EXE_NAME?.trim()) unityCmd += " -exeName \"${params.EXE_NAME}\""
                     if (params.BUNDLE_VERSION?.trim()) unityCmd += " -bundleversion \"${params.BUNDLE_VERSION}\""
+                    if (params.DEVELOPMENT_MODE) unityCmd += " -developmentMode true"
                     if (params.CLEAN_CONTENT) unityCmd += " -cleanContent true"
                     if (params.PURGE_CACHE) unityCmd += " -purgeCache true"
                     if (params.ADDRESSABLE_PROFILE_NAME?.trim()) unityCmd += " -addressableProfileName \"${params.ADDRESSABLE_PROFILE_NAME}\""
