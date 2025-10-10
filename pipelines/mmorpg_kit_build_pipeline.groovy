@@ -140,25 +140,50 @@ pipeline {
                     if (params.OUTPUT_PATH?.trim()) unityCmd += " -outputPath \"${params.OUTPUT_PATH}\""
                     if (params.EXE_NAME?.trim()) unityCmd += " -exeName \"${params.EXE_NAME}\""
                     if (params.BUNDLE_VERSION?.trim()) unityCmd += " -bundleversion \"${params.BUNDLE_VERSION}\""
-                    if (params.DEVELOPMENT_MODE) unityCmd += " -developmentMode true"
-                    if (params.CLEAN_CONTENT) unityCmd += " -cleanContent true"
-                    if (params.PURGE_CACHE) unityCmd += " -purgeCache true"
+                    if (params.DEVELOPMENT_MODE) {
+                        unityCmd += " -developmentMode true"
+                    } else {
+                        unityCmd += " -developmentMode false"
+                    }
+                    if (params.CLEAN_CONTENT) {
+                        unityCmd += " -cleanContent true"
+                    } else {
+                        unityCmd += " -cleanContent false"
+                    }
+                    if (params.PURGE_CACHE) {
+                        unityCmd += " -purgeCache true"
+                    } else {
+                        unityCmd += " -purgeCache false"
+                    }
                     if (params.ADDRESSABLE_PROFILE_NAME?.trim()) unityCmd += " -addressableProfileName \"${params.ADDRESSABLE_PROFILE_NAME}\""
 
                     switch(params.BUILD_TARGET) {
                         case 'LinuxServer':
                             unityCmd += " -executeMethod MultiplayerARPG.Builder.BuildLinux64Server"
-                            if (params.GENERATE_MAP_SERVER_DOCKERFILE) unityCmd += " -generateMapServerDockerfile true"
+                            if (params.GENERATE_MAP_SERVER_DOCKERFILE) {
+                                unityCmd += " -generateMapServerDockerfile true"
+                            } else {
+                                unityCmd += " -generateMapServerDockerfile false"
+                            }
                             if (params.GENERATE_MAP_SERVER_DOCKERFILE) unityCmd += " -mapServerPortInDockerfile \"${params.MAP_SERVER_PORT_IN_DOCKERFILE}\""
                             break
                         case 'WindowsServer':
                             unityCmd += " -executeMethod MultiplayerARPG.Builder.BuildWindows64Server"
-                            if (params.GENERATE_MAP_SERVER_DOCKERFILE) unityCmd += " -generateMapServerDockerfile true"
+                            if (params.GENERATE_MAP_SERVER_DOCKERFILE) {
+                                unityCmd += " -generateMapServerDockerfile true"
+                            } else {
+                                unityCmd += " -generateMapServerDockerfile false"
+                            }
                             if (params.GENERATE_MAP_SERVER_DOCKERFILE) unityCmd += " -mapServerPortInDockerfile \"${params.MAP_SERVER_PORT_IN_DOCKERFILE}\""
                             break
                         case 'Android':
                             unityCmd += " -executeMethod MultiplayerARPG.Builder.BuildAndroid"
-                            if (params.BUILD_APP_BUNDLE) unityCmd += " -buildAppBundle true"
+                            if (params.BUILD_APP_BUNDLE) 
+                            {
+                                unityCmd += " -buildAppBundle true"
+                            } else {
+                                unityCmd += " -buildAppBundle false"
+                            }
                             if (params.KEYSTORE_NAME?.trim()) unityCmd += " -keystoreName \"${params.KEYSTORE_NAME}\""
                             if (params.KEYSTORE_PASS?.trim()) unityCmd += " -keystorePass \"${params.KEYSTORE_PASS}\""
                             if (params.KEYALIAS_NAME?.trim()) unityCmd += " -keyaliasName \"${params.KEYALIAS_NAME}\""
